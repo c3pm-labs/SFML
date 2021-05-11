@@ -1,9 +1,4 @@
-# CMake's built-in Android support requires 3.7.0
-if(CMAKE_SYSTEM_NAME MATCHES "Android")
-    cmake_minimum_required(VERSION 3.7.2)
-else()
-    cmake_minimum_required(VERSION 3.0.2)
-endif()
+cmake_minimum_required(VERSION 3.7.2)
 
 # define a macro that helps defining an option
 macro(sfml_set_option var default type docstring)
@@ -222,12 +217,12 @@ if(SFML_OS_WINDOWS)
     sfml_set_option(SFML_USE_STATIC_STD_LIBS FALSE BOOL "TRUE to statically link to the standard libraries, FALSE to use them as DLLs")
 
     # the following combination of flags is not valid
-    if (BUILD_SHARED_LIBS AND SFML_USE_STATIC_STD_LIBS)
+    if(BUILD_SHARED_LIBS AND SFML_USE_STATIC_STD_LIBS)
         message(FATAL_ERROR "BUILD_SHARED_LIBS and SFML_USE_STATIC_STD_LIBS cannot be used together")
     endif()
 
     # for VC++, we can apply it globally by modifying the compiler flags
-    if(SFML_COMPILER_MSVC AND SFML_USE_STATIC_STD_LIBS)
+    if((SFML_COMPILER_MSVC OR (SFML_COMPILER_CLANG AND NOT MINGW)) AND SFML_USE_STATIC_STD_LIBS)
         foreach(flag
                 CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
                 CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
@@ -258,10 +253,12 @@ if(SFML_OS_MACOSX)
         endif()
     endif()
 
-    # only the default architecture (i.e. 64-bit) is supported
-    if(NOT CMAKE_OSX_ARCHITECTURES STREQUAL "x86_64")
-        message(FATAL_ERROR "Only 64-bit architecture is supported")
-    endif()
+    # only the default x86_64 or arm64 are supported
+    foreach (arch IN LISTS CMAKE_OSX_ARCHITECTURES)
+        if (NOT (arch STREQUAL "x86_64" OR arch STREQUAL "arm64"))
+            message(FATAL_ERROR "Invalid arch ${arch}")
+        endif()
+    endforeach()
 
     # configure Xcode templates
     set(XCODE_TEMPLATES_ARCH "\$(NATIVE_ARCH_ACTUAL)")
@@ -424,7 +421,7 @@ if(SFML_OS_WINDOWS)
             install(DIRECTORY extlibs/bin/x86/ DESTINATION ${CMAKE_INSTALL_BINDIR})
             if(SFML_COMPILER_MSVC AND SFML_MSVC_VERSION LESS 14)
                 install(DIRECTORY extlibs/libs-msvc/x86/ DESTINATION ${CMAKE_INSTALL_LIBDIR})
-            elseif(SFML_COMPILER_MSVC)
+            elseif(SFML_COMPILER_MSVC OR (SFML_COMPILER_CLANG AND NOT MINGW))
                 install(DIRECTORY extlibs/libs-msvc-universal/x86/ DESTINATION ${CMAKE_INSTALL_LIBDIR})
             else()
                 install(DIRECTORY extlibs/libs-mingw/x86/ DESTINATION ${CMAKE_INSTALL_LIBDIR})
@@ -433,7 +430,7 @@ if(SFML_OS_WINDOWS)
             install(DIRECTORY extlibs/bin/x64/ DESTINATION ${CMAKE_INSTALL_BINDIR})
             if(SFML_COMPILER_MSVC AND SFML_MSVC_VERSION LESS 14)
                 install(DIRECTORY extlibs/libs-msvc/x64/ DESTINATION ${CMAKE_INSTALL_LIBDIR})
-            elseif(SFML_COMPILER_MSVC)
+            elseif(SFML_COMPILER_MSVC OR (SFML_COMPILER_CLANG AND NOT MINGW))
                 install(DIRECTORY extlibs/libs-msvc-universal/x64/ DESTINATION ${CMAKE_INSTALL_LIBDIR})
             else()
                 install(DIRECTORY extlibs/libs-mingw/x64/ DESTINATION ${CMAKE_INSTALL_LIBDIR})

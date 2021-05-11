@@ -102,6 +102,7 @@ static void initializeMain(ActivityStates* states)
      * input queue.
      */
     ALooper_acquire(states->looper);
+    ALooper_wake(states->looper);
 
     // Get the default configuration
     states->config = AConfiguration_new();
@@ -492,6 +493,7 @@ JNIEXPORT void ANativeActivity_onCreate(ANativeActivity* activity, void* savedSt
     for (unsigned int i = 0; i < sf::Mouse::ButtonCount; i++)
         states->isButtonPressed[i] = false;
 
+    gladLoaderLoadEGL(EGL_DEFAULT_DISPLAY);
     states->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 
     if (savedState != NULL)
