@@ -1,15 +1,14 @@
 c3pm_version: v1
 type: library
 name: sfml
-description: sfml
+description: Simple and Fast Multimedia Library
 version: 2.5.1
+standard: "20"
 license: UNLICENSED
-custom_cmake:
-  path: .
-  targets:
-    - sfml-audio
-    - sfml-graphics
-    - sfml-network
-    - sfml-system
-    - sfml-window
-dependencies: {}
+publish:
+  include_dirs:
+    - "include"
+build:
+  adapter:
+    name: sfml
+    version: 0.0.1
